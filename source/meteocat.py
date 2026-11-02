@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 
 URL_INICI = "https://www.meteo.cat/"
-USER_AGENT = "UOC-Practica1-Crawler/1.0 (estudiants UOC; contacte: prequenamal@uoc.edu)"
+USER_AGENT = "UOC-Practica1-scraper/1.0 (estudiants UOC; contacte: prequenamal@uoc.edu)"
 
 # El que posa a la pàgina és una columna del CSV
 ETIQUETES = {
