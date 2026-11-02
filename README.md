@@ -25,7 +25,6 @@ El `robots.txt` de meteo.cat prohibeix les URLs amb paràmetre de data (`/observ
 .
 ├── README.md                   Aquest document
 ├── requirements.txt            Llibreries i versions necessàries
-├── recursos_aliens.md          Recursos de tercers utilitzats i la seva llicència
 ├── source/
 │   └── meteocat.py             Codi de l'scraper
 └── dataset/
