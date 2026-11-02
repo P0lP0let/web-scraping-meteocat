@@ -15,7 +15,7 @@ Pràctica 1 de *Tipologia i cicle de vida de les dades* · Màster universitari 
 
 Aquest projecte és un scraper en Python que captura les dades de la Xarxa d'Estacions Meteorològiques Automàtiques (XEMA) del Servei Meteorològic de Catalunya, publicades a [meteo.cat](https://www.meteo.cat/).
 
-Cada execució fa una instantània de l'estat de les estacions operatives: metadades de l'estació, resum diari i observacions semihoràries del dia en curs. Executant-lo diàriament, els fitxers CSV s'acumulen però sense duplicitats.
+Cada execució fa una instantània de les estacions operatives: metadades de l'estació, resum diari i observacions semihoràries del dia en curs. Si s'executa cada dia, els fitxers CSV s'acumulen i es forma una sèrie temporal.
 
 El `robots.txt` de meteo.cat prohibeix les URLs amb paràmetre de data (`/observacions/xema/dades?*dia=`). Per això el scraper **no** consulta l'històric dia a dia: només visita les pàgines d'estació sense data, i el dataset es forma acumulant captures diàries.
 
@@ -23,10 +23,11 @@ El `robots.txt` de meteo.cat prohibeix les URLs amb paràmetre de data (`/observ
 
 ```
 .
-├── README.md                  Aquest document
-├── requirements.txt           Llibreries i versions necessàries
+├── README.md                   Aquest document
+├── requirements.txt            Llibreries i versions necessàries
+├── recursos_aliens.md          Recursos de tercers utilitzats i la seva llicència
 ├── source/
-│   └── meteocat.py   Codi de l'scraper
+│   └── meteocat.py             Codi de l'scraper
 └── dataset/
     ├── meteocat_resum_diari.csv               Una fila per estació i dia
     └── meteocat_observacions_semihoraries.csv Una fila per estació, dia i franja de 30 min
@@ -51,14 +52,12 @@ L'script s'identifica davant del servidor amb un User-Agent propi que inclou un 
 ## Ús
 
 ```bash
-python source/meteocat.py [--maxStations N] [--maxPages N] [--maxDepth N] [--outputDir DIR]
+python source/meteocat.py [--maxStations N] [--outputDir DIR]
 ```
 
 | Paràmetre | Valor per defecte | Descripció |
 |---|---|---|
 | `--maxStations` | `5` | Nombre d'estacions que es visiten. `0` = totes les operatives. |
-| `--maxPages` | `15` | Màxim de pàgines del crawl de descobriment (portada, llistat...). |
-| `--maxDepth` | `3` | Profunditat màxima de navegació des de la portada. |
 | `--outputDir` | `.` | Carpeta on es desen els CSV. |
 
 **Exemples replicables**
@@ -71,24 +70,22 @@ python source/meteocat.py --maxStations 5 --outputDir dataset
 python source/meteocat.py --maxStations 0 --outputDir dataset
 ```
 
-**Recomanació d'execució:** una vegada al dia, cap a les 23:45 hora local. Les pàgines de meteo.cat mostren el dia en Temps Universal (TU) i, passada la mitjanit TU (01:00 hora local a l'hivern), comencen un dia nou gairebé buit. Si s'executa més d'una vegada el mateix dia, les files d'aquell dia se sobreescriuen i no es dupliquen.
+**Recomanació d'execució:** una vegada al dia, cap a les 23:45 hora local. Les pàgines de meteo.cat mostren el dia en Temps Universal (TU) i, passada la mitjanit TU (01:00 hora local a l'hivern), comencen un dia nou gairebé buit. Si s'executa més d'una vegada el mateix dia, les files d'aquell dia se substitueixen per les noves i no es dupliquen.
 
 ## Com funciona
 
-**Fase 1: descobriment d'estacions.**
-
-1. Llegeix `robots.txt` i en treu l'adreça del `sitemap.xml`. Del sitemap extrau els enllaços `…/observacions/xema/dades?codi=XX`. S'analitza amb una expressió regular perquè el sitemap fa servir el prefix `xhtml:` sense declarar-lo.
-2. Fa un recorregut en amplada (BFS) des de `https://www.meteo.cat/`, limitat a la secció d'observacions, fins al llistat d'estacions (`/observacions/llistat-xema`). D'aquesta taula n'obté les metadades de cada estació.
-3. Uneix les estacions trobades per les dues vies i es queda amb les operatives.
-
-**Fase 2: extracció per estació.** Per a cada estació visita `…/dades?codi=XX` i en llegeix el resum diari i la taula d'observacions semihoràries.
+1. **Portada.** Obre `https://www.meteo.cat/` i hi busca l'enllaç al llistat d'estacions (`/observacions/llistat-xema`).
+2. **Llistat d'estacions.** Llegeix la taula del llistat: de cada estació n'obté el nom, la comarca, el municipi, les coordenades, l'altitud, les dates d'alta i baixa i l'estat. Només es visiten les estacions que tenen enllaç, que són les operatives.
+3. **Comprovació amb el sitemap.** Llegeix el `sitemap.xml` anunciat al `robots.txt` i compara els codis d'estació amb els del llistat. Només informa de les diferències al terminal; no canvia quines estacions es visiten. El sitemap es llegeix amb una expressió regular perquè fa servir el prefix `xhtml:` sense declarar-lo i un lector d'XML estricte fallaria.
+4. **Pàgina de cada estació.** Visita `…/observacions/xema/dades?codi=XX` i en llegeix el resum diari i la taula d'observacions semihoràries.
+5. **Desament.** Escriu els dos CSV. Si ja existeixen, les files noves se sumen a les que hi havia, i una fila amb la mateixa clau (estació i data, o estació, data i franja) substitueix l'anterior.
 
 **Bon ús del web scraping**
 
-- Respecta el `robots.txt` abans de cada petició.
-- Pausa aleatòria d'1,5 a 3,5 s entre peticions, reintents amb espera exponencial.
-- User-Agent identificable amb un correu de contacte, que es comprova en cada execució.
-- Límits de pàgines, profunditat i estacions; filtre de domini, rutes i tipus de fitxer.
+- Comprova el `robots.txt` abans de cada petició.
+- Pausa aleatòria d'1,5 a 3,5 s abans de cada petició, i fins a 3 intents si falla.
+- User-Agent identificable amb un correu de contacte; a l'inici de cada execució es comprova quin User-Agent arriba al servidor.
+- No visita cap URL amb paràmetre de data, que el `robots.txt` prohibeix.
 - No utilitza l'API de Meteocat.
 
 ## Contingut del dataset
@@ -128,6 +125,13 @@ Els valors es desen tal com apareixen al web (per exemple `18.7 °C`). No s'ha f
 | `RS` | Radiació solar (W/m²) |
 
 Totes les hores estan en Temps Universal (TU). Per passar a hora oficial cal sumar-hi una hora a l'hivern i dues a l'estiu.
+
+## Limitacions
+
+- Només es captura el dia en curs: el `robots.txt` no permet consultar dies anteriors. La longitud de la sèrie depèn de quants dies s'hagi executat l'script.
+- Les dades del dia en curs són provisionals: el web indica que algunes només han passat un control de qualitat automàtic.
+- El llistat d'estacions és la font principal. El sitemap és incomplet (no inclou les estacions més noves) i només s'usa per comprovar.
+- Si Meteocat canvia l'estructura de les pàgines, caldrà ajustar les funcions `llegir_llistat`, `llegir_resum` i `llegir_observacions`.
 
 ## Llicència i condicions d'ús
 
