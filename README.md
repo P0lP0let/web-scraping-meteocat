@@ -4,8 +4,8 @@ Pràctica 1 de *Tipologia i cicle de vida de les dades* · Màster universitari 
 
 **Integrants del grup**
 
-- Pol Requena
-- Aruna Carbó
+- Pol Requena Maldonado
+- Aruna Carbó Terrades
 
 **DOI del dataset (Zenodo):** https://doi.org/10.5281/zenodo.23962902
 
