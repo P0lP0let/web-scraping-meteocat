@@ -7,7 +7,7 @@ Pràctica 1 de *Tipologia i cicle de vida de les dades* · Màster universitari 
 - Pol Requena
 - Aruna Carbó
 
-**DOI del dataset (Zenodo):** https://doi.org/[DOI]
+**DOI del dataset (Zenodo):
 
 ---
 
