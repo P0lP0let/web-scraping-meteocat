@@ -7,7 +7,7 @@ Pràctica 1 de *Tipologia i cicle de vida de les dades* · Màster universitari 
 - Pol Requena
 - Aruna Carbó
 
-**DOI del dataset (Zenodo):
+**DOI del dataset (Zenodo):** https://doi.org/10.5281/zenodo.23962902
 
 ---
 
@@ -135,8 +135,8 @@ Totes les hores estan en Temps Universal (TU). Per passar a hora oficial cal sum
 ## Llicència i condicions d'ús
 
 - Font de les dades: Servei Meteorològic de Catalunya (Meteocat), [meteo.cat](https://www.meteo.cat/). Consulteu l'[avís legal](https://www.meteo.cat/wpweb/avis-legal/) per a les condicions de reutilització.
-- Llicència del dataset: [pendent de decidir; justificar-la a la memòria].
-- Llicència del codi: [pendent de decidir].
+- Llicència del dataset: Llicència oberta d'ús d'informació – Catalunya.
+- Llicència del codi: Sense llicència específica.
 
 ## Referències
 
